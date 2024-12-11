@@ -1,0 +1,73 @@
+import os
+import re
+import unicodedata
+from langdetect import detect, detect_langs
+
+# Définition des ensembles de caractères pour les systèmes d'écriture
+CHARACTER_SETS = {
+    "japonais": r'[\u3040-\u309F\u30A0-\u30FF\u31F0-\u31FF]',  # Hiragana, Katakana, Kana étendu
+    "kanji": r'[\u4E00-\u9FFF]',  # Kanji
+    "coréen": r'[\uAC00-\uD7AF\u1100-\u11FF]',  # Hangul
+    "russe": r'[\u0400-\u04FF]',  # Alphabet cyrillique
+    "arabe": r'[\u0600-\u06FF\u0750-\u077F]',  # Arabe
+    "hébreu": r'[\u0590-\u05FF]',  # Hébreu
+    "grec": r'[\u0370-\u03FF]',  # Alphabet grec
+    "latin étendu": r'[\u0100-\u024F]',  # Caractères latins avec accents
+    "autre": r'[^\u0000-\u007F]',  # Tout caractère non ASCII
+}
+
+# Fonction pour classifier les types de caractères
+def classify_text_with_proportions(text):
+    normalized_text = unicodedata.normalize('NFC', text)
+    total_characters = len(normalized_text)
+    char_counts = {charset: 0 for charset in CHARACTER_SETS}
+
+    # Compter les caractères pour chaque ensemble
+    for charset, regex in CHARACTER_SETS.items():
+        char_counts[charset] += len(re.findall(regex, normalized_text))
+
+    # Calculer les proportions
+    proportions = {}
+    for charset, count in char_counts.items():
+        if count > 0:
+            proportions[charset] = round((count / total_characters) * 100, 2)
+
+    return proportions
+
+# Fonction pour détecter les langues dans un texte
+def detect_languages(text):
+    try:
+        languages = detect_langs(text)  # Renvoie les langues détectées avec probabilités
+        return ", ".join([f"{lang.lang}: {round(lang.prob * 100, 2)}%" for lang in languages])
+    except:
+        return "Langue inconnue"
+
+# Fonction pour analyser un corpus de textes
+def analyze_corpus(corpus_folder):
+    results = {}
+
+    for filename in os.listdir(corpus_folder):
+        if filename.endswith(".txt"):
+            file_path = os.path.join(corpus_folder, filename)
+            with open(file_path, 'r', encoding='utf-8') as file:
+                text = file.read()
+                char_proportions = classify_text_with_proportions(text)
+                languages = detect_languages(text)
+                results[filename] = {
+                    "proportions": char_proportions,
+                    "langues": languages
+                }
+
+    return results
+
+# Chemin vers le dossier contenant les textes
+corpus_folder = "/content/"  # À adapter selon votre environnement
+
+# Analyse des fichiers
+results = analyze_corpus(corpus_folder)
+
+# Affichage des résultats
+print("Analyse des fichiers :\n")
+for filename, analysis in results.items():
+    proportions = ", ".join(f"{k}: {v}%" for k, v in analysis["proportions"].items())
+    print(f"{filename} :\n  - Proportions : {proportions}\n  - Langues détectées : {analysis['langues']}\n")
