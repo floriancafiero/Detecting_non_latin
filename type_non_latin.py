@@ -61,7 +61,7 @@ def find_texts_with_non_latin_characters(corpus_folder):
     return results
 
 # Chemin vers le dossier contenant les textes
-corpus_folder = "/content/"  # À adapter selon votre environnement
+corpus_folder = "/content/"  # À adapter (oui moi c'est du colab)
 
 # Analyse des fichiers
 results = find_texts_with_non_latin_characters(corpus_folder)
