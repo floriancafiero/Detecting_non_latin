@@ -6,7 +6,7 @@ model = fasttext.load_model("lid.176.bin")
 
 # Fonction pour détecter les langues
 def detect_language_fasttext(text):
-    predictions = model.predict(text.replace('\n', ' '), k=2)  # Top 2 langues # Replacing newline characters with spaces
+    predictions = model.predict(text.replace('\n', ' '), k=2)  # Top 2 langues
     langs = [f"{lang.replace('__label__', '')}: {round(prob * 100, 2)}%" 
              for lang, prob in zip(predictions[0], predictions[1])]
     return ", ".join(langs)
@@ -23,11 +23,10 @@ def analyze_corpus_with_fasttext(corpus_folder):
                     text = line.strip()  # Remove leading/trailing whitespace
                     if text:  # Skip empty lines
                         detected_lang = detect_language_fasttext(text)
-                        results.setdefault(filename, []).append(detected_lang) # Append detected language to list associated with filename
+                        results.setdefault(filename, []).append(detected_lang) 
                 
-    # If you want a single language for each file, you can choose the most frequent
-    # Or you can keep the list of languages detected in each line
-    return results # or {filename: max(set(langs), key=langs.count) for filename, langs in results.items()}
+
+    return results
 
 
 # Chemin vers le dossier contenant les textes
